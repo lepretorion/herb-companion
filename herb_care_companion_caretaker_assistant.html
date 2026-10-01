@@ -1,0 +1,911 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Herb Care Companion & Caretaker Assistant</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        /* Custom scrollbar for horizontal herb scroll */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        .tab-btn.active {
+            color: #059669;
+            border-bottom: 3px solid #059669;
+            font-weight: 700;
+        }
+        .dark .tab-btn.active {
+            color: #34d399;
+            border-bottom-color: #34d399;
+        }
+    </style>
+</head>
+<body class="bg-stone-50 text-stone-800 min-h-screen flex flex-col pb-20 md:pb-6">
+
+    <!-- Top Navigation / Header -->
+    <header class="bg-emerald-800 text-white sticky top-0 z-50 shadow-md">
+        <div class="max-w-3xl mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-full bg-emerald-700 flex items-center justify-center text-xl shadow-inner">
+                    🌿
+                </div>
+                <div>
+                    <h1 class="text-lg font-bold leading-tight">Herb Care Assistant</h1>
+                    <p class="text-xs text-emerald-200 flex items-center gap-1">
+                        <span class="w-2 h-2 rounded-full bg-emerald-400 inline-block animate-pulse"></span>
+                        Offline Ready Caretaker
+                    </p>
+                </div>
+            </div>
+            <button id="resetDataBtn" title="Reset Data" class="text-emerald-200 hover:text-white text-xs bg-emerald-900/60 hover:bg-emerald-900 px-2.5 py-1.5 rounded-lg transition border border-emerald-700">
+                <i class="fa-solid fa-arrows-rotate mr-1"></i> Reset
+            </button>
+        </div>
+    </header>
+
+    <main class="max-w-3xl mx-auto w-full flex-1 px-4 py-4">
+
+        <!-- Top Navigation Bar for Mobile/Desktop Tabs -->
+        <nav class="flex border-b border-stone-200 mb-5 overflow-x-auto no-scrollbar bg-white rounded-xl shadow-sm p-1">
+            <button onclick="switchTab('garden')" id="tab-garden" class="tab-btn active flex-1 py-2.5 px-3 text-center text-xs sm:text-sm font-medium text-stone-600 transition flex items-center justify-center gap-2 whitespace-nowrap">
+                <i class="fa-solid fa-seedling text-base"></i> My Garden
+            </button>
+            <button onclick="switchTab('checklist')" id="tab-checklist" class="tab-btn flex-1 py-2.5 px-3 text-center text-xs sm:text-sm font-medium text-stone-600 transition flex items-center justify-center gap-2 whitespace-nowrap">
+                <i class="fa-solid fa-list-check text-base"></i> Weekly Checklist
+                <span id="badge-overdue" class="hidden bg-rose-500 text-white text-[10px] px-1.5 py-0.5 rounded-full font-bold">0</span>
+            </button>
+            <button onclick="switchTab('assistant')" id="tab-assistant" class="tab-btn flex-1 py-2.5 px-3 text-center text-xs sm:text-sm font-medium text-stone-600 transition flex items-center justify-center gap-2 whitespace-nowrap">
+                <i class="fa-solid fa-user-doctor text-base"></i> Care Assistant
+            </button>
+            <button onclick="switchTab('library')" id="tab-library" class="tab-btn flex-1 py-2.5 px-3 text-center text-xs sm:text-sm font-medium text-stone-600 transition flex items-center justify-center gap-2 whitespace-nowrap">
+                <i class="fa-solid fa-book-open text-base"></i> Herb Library
+            </button>
+        </nav>
+
+        <!-- VIEW 1: MY GARDEN -->
+        <section id="view-garden" class="space-y-4">
+            <!-- Summary Header Card -->
+            <div class="bg-gradient-to-br from-emerald-700 to-teal-800 text-white rounded-2xl p-4 sm:p-5 shadow-lg relative overflow-hidden">
+                <div class="absolute -right-4 -bottom-4 text-emerald-900/30 text-9xl pointer-events-none select-none">🍃</div>
+                <div class="relative z-10">
+                    <span class="text-xs uppercase tracking-wider text-emerald-200 font-semibold">Accountability Status</span>
+                    <h2 class="text-2xl font-bold mt-0.5">Garden Care Overview</h2>
+                    <p class="text-xs text-emerald-100 mt-1 max-w-md">Keep your herbs flourishing. Tending to weekly duties ensures long lifespans and rich harvests!</p>
+                    
+                    <div class="grid grid-cols-3 gap-2 mt-4 text-center">
+                        <div class="bg-white/10 backdrop-blur-sm rounded-xl p-2.5 border border-white/10">
+                            <span id="stat-herbs-count" class="block text-xl font-bold">8</span>
+                            <span class="text-[11px] text-emerald-200">Active Herbs</span>
+                        </div>
+                        <div class="bg-white/10 backdrop-blur-sm rounded-xl p-2.5 border border-white/10">
+                            <span id="stat-completed-tasks" class="block text-xl font-bold text-emerald-300">0/0</span>
+                            <span class="text-[11px] text-emerald-200">Weekly Done</span>
+                        </div>
+                        <div class="bg-white/10 backdrop-blur-sm rounded-xl p-2.5 border border-white/10">
+                            <span id="stat-overdue-tasks" class="block text-xl font-bold text-rose-300">0</span>
+                            <span class="text-[11px] text-emerald-200">Overdue Tasks</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Herb Quick Grid -->
+            <div class="flex justify-between items-center pt-2">
+                <h3 class="font-bold text-stone-800 flex items-center gap-2">
+                    <i class="fa-solid fa-leaf text-emerald-600"></i> My Herb Collection
+                </h3>
+                <span class="text-xs text-stone-500">Tap for full caretaker guide</span>
+            </div>
+
+            <div id="garden-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <!-- Dynamically Populated Herb Cards -->
+            </div>
+        </section>
+
+        <!-- VIEW 2: WEEKLY CHECKLIST -->
+        <section id="view-checklist" class="hidden space-y-4">
+            <div class="bg-white rounded-2xl p-4 shadow-sm border border-stone-200/80">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
+                    <div>
+                        <h2 class="text-lg font-bold text-stone-800 flex items-center gap-2">
+                            <i class="fa-solid fa-square-check text-emerald-600"></i> Caretaker Task Checklist
+                        </h2>
+                        <p class="text-xs text-stone-500">Uncompleted tasks persist across weeks with accountability indicators.</p>
+                    </div>
+                    <button onclick="triggerNewWeek()" class="self-start sm:self-auto bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs font-semibold px-3 py-1.5 rounded-lg transition border border-stone-300 flex items-center gap-1.5">
+                        <i class="fa-solid fa-calendar-plus text-emerald-600"></i> Start New Week Cycle
+                    </button>
+                </div>
+
+                <!-- Progress Bar -->
+                <div class="w-full bg-stone-100 rounded-full h-2.5 mb-2 overflow-hidden border border-stone-200">
+                    <div id="checklist-progress-bar" class="bg-emerald-600 h-2.5 rounded-full transition-all duration-500" style="width: 0%"></div>
+                </div>
+                <div class="flex justify-between text-[11px] text-stone-500 font-medium">
+                    <span id="checklist-progress-text">0% Completed</span>
+                    <span id="current-week-label">Week Cycle #1</span>
+                </div>
+            </div>
+
+            <!-- Accountability Alert Banner (shows if overdue items exist) -->
+            <div id="overdue-alert-banner" class="hidden bg-rose-50 border border-rose-200 text-rose-800 rounded-xl p-3 text-xs flex items-start gap-2.5">
+                <i class="fa-solid fa-triangle-exclamation text-rose-500 text-base mt-0.5"></i>
+                <div>
+                    <strong class="font-semibold block">Attention Needed!</strong>
+                    You have <span id="overdue-count-span" class="font-bold">0</span> tasks overdue. Herbs suffer when routines are missed across multiple weeks!
+                </div>
+            </div>
+
+            <!-- Filter Buttons -->
+            <div class="flex gap-2 text-xs">
+                <button onclick="filterChecklist('all')" id="filter-all" class="px-3 py-1.5 rounded-lg bg-emerald-700 text-white font-medium">All Tasks</button>
+                <button onclick="filterChecklist('overdue')" id="filter-overdue" class="px-3 py-1.5 rounded-lg bg-stone-100 text-stone-600 hover:bg-stone-200 font-medium">Overdue Only</button>
+                <button onclick="filterChecklist('pending')" id="filter-pending" class="px-3 py-1.5 rounded-lg bg-stone-100 text-stone-600 hover:bg-stone-200 font-medium">Pending</button>
+            </div>
+
+            <!-- Task List Container -->
+            <div id="tasks-container" class="space-y-2.5">
+                <!-- Dynamically inserted tasks -->
+            </div>
+
+            <!-- Activity Log Section -->
+            <div class="bg-white rounded-2xl p-4 shadow-sm border border-stone-200/80 mt-6">
+                <h3 class="font-bold text-sm text-stone-800 mb-2 flex items-center gap-2">
+                    <i class="fa-solid fa-clock-rotate-left text-emerald-600"></i> Caretaker Activity Log
+                </h3>
+                <div id="activity-log" class="text-xs text-stone-600 space-y-1.5 max-h-40 overflow-y-auto divide-y divide-stone-100">
+                    <p class="text-stone-400 italic text-center py-2">No care actions logged yet.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- VIEW 3: CARETAKER ASSISTANT (TROUBLESHOOTING & SYMPTOMS) -->
+        <section id="view-assistant" class="hidden space-y-4">
+            <div class="bg-white rounded-2xl p-4 shadow-sm border border-stone-200/80">
+                <h2 class="text-lg font-bold text-stone-800 flex items-center gap-2">
+                    <i class="fa-solid fa-user-doctor text-emerald-600"></i> Herb Care Assistant & Diagnostics
+                </h2>
+                <p class="text-xs text-stone-500 mt-1">Is your herb turning yellow, drooping, or growing tall and thin? Select a symptom below to see immediate step-by-step caretaker remedies.</p>
+            </div>
+
+            <!-- Symptom Selector Buttons -->
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                <button onclick="diagnoseSymptom('yellow')" class="symptom-btn p-3 bg-white hover:bg-amber-50 border border-stone-200 rounded-xl text-left transition text-xs font-semibold text-stone-700 flex flex-col gap-1 shadow-sm">
+                    <span class="text-lg">🟡</span> Yellowing Leaves
+                </button>
+                <button onclick="diagnoseSymptom('drooping')" class="symptom-btn p-3 bg-white hover:bg-amber-50 border border-stone-200 rounded-xl text-left transition text-xs font-semibold text-stone-700 flex flex-col gap-1 shadow-sm">
+                    <span class="text-lg">🥀</span> Drooping / Wilting
+                </button>
+                <button onclick="diagnoseSymptom('leggy')" class="symptom-btn p-3 bg-white hover:bg-amber-50 border border-stone-200 rounded-xl text-left transition text-xs font-semibold text-stone-700 flex flex-col gap-1 shadow-sm">
+                    <span class="text-lg">🦒</span> Leggy / Sparse Growth
+                </button>
+                <button onclick="diagnoseSymptom('flowering')" class="symptom-btn p-3 bg-white hover:bg-amber-50 border border-stone-200 rounded-xl text-left transition text-xs font-semibold text-stone-700 flex flex-col gap-1 shadow-sm">
+                    <span class="text-lg">🌸</span> Bolting / Flowering
+                </button>
+                <button onclick="diagnoseSymptom('pests')" class="symptom-btn p-3 bg-white hover:bg-amber-50 border border-stone-200 rounded-xl text-left transition text-xs font-semibold text-stone-700 flex flex-col gap-1 shadow-sm">
+                    <span class="text-lg">🐛</span> White Spots or Bugs
+                </button>
+                <button onclick="diagnoseSymptom('woody')" class="symptom-btn p-3 bg-white hover:bg-amber-50 border border-stone-200 rounded-xl text-left transition text-xs font-semibold text-stone-700 flex flex-col gap-1 shadow-sm">
+                    <span class="text-lg">🪵</span> Stems Turning Woody
+                </button>
+            </div>
+
+            <!-- Diagnostic Results Box -->
+            <div id="diagnostic-result" class="bg-white rounded-2xl p-4 shadow-sm border border-stone-200/80">
+                <div class="text-center py-6 text-stone-400">
+                    <i class="fa-solid fa-stethoscope text-3xl mb-2 text-stone-300"></i>
+                    <p class="text-xs">Select a symptom above to get diagnostic instructions and action items.</p>
+                </div>
+            </div>
+
+            <!-- Lifespan & Cycle Advice Card -->
+            <div class="bg-emerald-50 rounded-2xl p-4 border border-emerald-200/70 space-y-2">
+                <h3 class="font-bold text-sm text-emerald-900 flex items-center gap-2">
+                    <i class="fa-solid fa-hourglass-half text-emerald-700"></i> Understanding Herb Lifespans
+                </h3>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
+                    <div class="bg-white p-2.5 rounded-xl border border-emerald-100">
+                        <span class="font-bold text-emerald-800 block">Annuals</span>
+                        <span class="text-stone-500 text-[11px] block mt-0.5">Cilantro, Basil</span>
+                        <p class="text-stone-600 text-[11px] mt-1">Live for one season. Sowing new seeds every 3-4 weeks guarantees non-stop fresh harvests.</p>
+                    </div>
+                    <div class="bg-white p-2.5 rounded-xl border border-emerald-100">
+                        <span class="font-bold text-emerald-800 block">Biennials</span>
+                        <span class="text-stone-500 text-[11px] block mt-0.5">Parsley</span>
+                        <p class="text-stone-600 text-[11px] mt-1">Lives for 2 years. Leaves are best in year 1; flowers in year 2 make leaves bitter.</p>
+                    </div>
+                    <div class="bg-white p-2.5 rounded-xl border border-emerald-100">
+                        <span class="font-bold text-emerald-800 block">Perennials</span>
+                        <span class="text-stone-500 text-[11px] block mt-0.5">Rosemary, Mint, Thyme, Sage, Oregano</span>
+                        <p class="text-stone-600 text-[11px] mt-1">Returns year after year. Prune regularly to prevent stems from turning overly woody.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- VIEW 4: HERB LIBRARY (KNOWLEDGE BASE) -->
+        <section id="view-library" class="hidden space-y-4">
+            <div class="bg-white rounded-2xl p-4 shadow-sm border border-stone-200/80 flex flex-col sm:flex-row justify-between sm:items-center gap-3">
+                <div>
+                    <h2 class="text-lg font-bold text-stone-800 flex items-center gap-2">
+                        <i class="fa-solid fa-book-open text-emerald-600"></i> Herb Knowledge Base
+                    </h2>
+                    <p class="text-xs text-stone-500">Comprehensive caretaker specifications and growth secrets for 8 common household herbs.</p>
+                </div>
+                <input type="text" id="library-search" oninput="filterLibrary()" placeholder="Search herb..." class="text-xs px-3 py-2 border border-stone-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 w-full sm:w-48">
+            </div>
+
+            <div id="library-cards-container" class="space-y-3">
+                <!-- Dynamically Generated Detailed Herb Knowledge Cards -->
+            </div>
+        </section>
+
+    </main>
+
+    <!-- HERB DETAIL MODAL -->
+    <div id="herb-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-lg w-full max-h-[90vh] overflow-y-auto shadow-2xl flex flex-col">
+            <div id="modal-header" class="p-5 bg-emerald-800 text-white relative rounded-t-3xl">
+                <button onclick="closeModal()" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-black/20 text-white hover:bg-black/40 flex items-center justify-center text-sm">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+                <div class="flex items-center gap-3">
+                    <span id="modal-emoji" class="text-4xl bg-white/20 p-2 rounded-2xl">🌿</span>
+                    <div>
+                        <h3 id="modal-title" class="text-2xl font-bold">Herb Name</h3>
+                        <p id="modal-subtitle" class="text-xs text-emerald-200">Scientific Name • Type</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="modal-content" class="p-5 space-y-4 text-xs text-stone-700">
+                <!-- Modal details rendered here -->
+            </div>
+
+            <div class="p-4 border-t border-stone-200 bg-stone-50 rounded-b-3xl flex justify-end">
+                <button onclick="closeModal()" class="bg-emerald-700 text-white font-semibold px-4 py-2 rounded-xl text-xs hover:bg-emerald-800 transition">
+                    Done Reading
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /* Caretaker Knowledge Base Data for Household Herbs */
+        const HERB_DATABASE = [
+            {
+                id: 'basil',
+                name: 'Basil',
+                scientific: 'Ocimum basilicum',
+                emoji: '🌿',
+                lifespan: 'Annual (1 Season)',
+                sunlight: '6-8 hours direct sun',
+                watering: 'Keep moist, water when top 1" dry',
+                soil: 'Rich, well-draining soil',
+                pruning: 'Pinch top shoots every 2-3 weeks above leaf nodes to force bushy branching.',
+                harvest: 'Harvest from top down. Never cut lower leaves or full stems at the base.',
+                troubleshooting: 'Yellow bottom leaves = Overwatering or lack of sun. Black leaves = Cold temperatures (< 50°F).',
+                funFact: 'Pinching off flower buds as soon as they appear extends leaf production by weeks and prevents bitter flavor.',
+                tasks: [
+                    { title: 'Check Soil Moisture', category: 'Watering', note: 'Water at soil level; avoid getting leaves wet.' },
+                    { title: 'Pinch Flower Buds & Top Shoots', category: 'Pruning', note: 'Pinch top cluster to encourage bushy side growth.' }
+                ]
+            },
+            {
+                id: 'mint',
+                name: 'Mint',
+                scientific: 'Mentha spicata',
+                emoji: '🌱',
+                lifespan: 'Perennial (Returns Yearly)',
+                sunlight: 'Partial shade to full sun',
+                watering: 'Consistently moist soil',
+                soil: 'Moist, organic-rich soil',
+                pruning: 'Prune aggressively! Mint spreads rapidly via subterranean runners.',
+                harvest: 'Cut stems just above a leaf node. Leaves can be harvested anytime.',
+                troubleshooting: 'Invading other pots = Keep in isolated container! Brown lower leaves = Underwatered.',
+                funFact: 'Mint roots are aggressive opportunists. Always grow in individual pots to prevent choking neighboring herbs.',
+                tasks: [
+                    { title: 'Check Soil & Water Thoroughly', category: 'Watering', note: 'Mint loves consistent moisture.' },
+                    { title: 'Trim Sprawling Runners', category: 'Pruning', note: 'Keep mint confined to its intended shape.' }
+                ]
+            },
+            {
+                id: 'rosemary',
+                name: 'Rosemary',
+                scientific: 'Salvia rosmarinus',
+                emoji: '🌲',
+                lifespan: 'Perennial Evergreen Shrub',
+                sunlight: '6-8+ hours full sun',
+                watering: 'Allow top 2" soil to dry completely',
+                soil: 'Gritty, fast-draining soil',
+                pruning: 'Trim tender spring tips. Avoid cutting deep into old woody stems.',
+                harvest: 'Snip top 2-3 inches of green stems with clean shears.',
+                troubleshooting: 'White powdery residue = Powdery mildew (needs higher air circulation). Browning tips = Root rot from overwatering.',
+                funFact: 'Rosemary originates from Mediterranean coastlines and thrives in dry, lean soil with minimal fertilization.',
+                tasks: [
+                    { title: 'Inspect Soil Dryness', category: 'Watering', note: 'Only water if top 2 inches are bone dry.' },
+                    { title: 'Rotate Pot for Uniform Sun', category: 'Sunlight', note: 'Ensures all sides receive strong direct sunlight.' }
+                ]
+            },
+            {
+                id: 'thyme',
+                name: 'Thyme',
+                scientific: 'Thymus vulgaris',
+                emoji: '🍃',
+                lifespan: 'Perennial',
+                sunlight: 'Full direct sunlight',
+                watering: 'Drought tolerant; water sparingly',
+                soil: 'Sandy, well-draining soil',
+                pruning: 'Cut back by 1/3 after flowering to prevent center from becoming woody and bare.',
+                harvest: 'Cut fresh green stems right before blooms appear for maximum essential oil aroma.',
+                troubleshooting: 'Center becoming bare and woody = Needs regular tip trimming to encourage fresh shoots.',
+                funFact: 'Thyme leaves produce thymol, a natural antimicrobial compound that gives it its distinct aroma.',
+                tasks: [
+                    { title: 'Deep Light Watering', category: 'Watering', note: 'Ensure drainage holes are flowing.' },
+                    { title: 'Trim Soft Stem Tips', category: 'Pruning', note: 'Keeps bush compact and delays woodiness.' }
+                ]
+            },
+            {
+                id: 'parsley',
+                name: 'Parsley',
+                scientific: 'Petroselinum crispum',
+                emoji: '☘️',
+                lifespan: 'Biennial (Best in Year 1)',
+                sunlight: 'Full sun to light shade',
+                watering: '1 inch of water weekly',
+                soil: 'Loamy, rich, well-draining',
+                pruning: 'Remove outer older stems at soil level. Leave inner new growth untouched.',
+                harvest: 'Harvest outer stems first; central crown keeps producing new growth.',
+                troubleshooting: 'Yellowing outer leaves = Normal leaf aging or nitrogen deficiency. Give organic liquid feed.',
+                funFact: 'In its 2nd year, parsley blooms and leaves grow bitter. Re-sow new seeds each spring for best culinary flavor.',
+                tasks: [
+                    { title: 'Water Base Deeply', category: 'Watering', note: 'Keep soil evenly damp.' },
+                    { title: 'Harvest Outer Yellowing Stems', category: 'Harvesting', note: 'Always harvest from the outside in.' }
+                ]
+            },
+            {
+                id: 'cilantro',
+                name: 'Cilantro (Coriander)',
+                scientific: 'Coriandrum sativum',
+                emoji: '🥗',
+                lifespan: 'Short-lived Annual',
+                sunlight: 'Full sun or morning sun',
+                watering: 'Keep moist; do not let dry completely',
+                soil: 'Light, well-drained soil',
+                pruning: 'Pinch flower stalks immediately to delay bolting in warm weather.',
+                harvest: 'Snip individual stems when plant is 6 inches tall.',
+                troubleshooting: 'Tall thin stalk with fine feathery leaves = Plant is bolting (going to seed) due to heat.',
+                funFact: 'When cilantro bolts in summer heat, let it produce seeds—those seeds are the spice Coriander!',
+                tasks: [
+                    { title: 'Moisture Check', category: 'Watering', note: 'Prevent drying out to avoid early heat stress.' },
+                    { title: 'Check for Tall Flowering Stalks', category: 'Pruning', note: 'Pinch out tall shoots to prolong leaf production.' }
+                ]
+            },
+            {
+                id: 'sage',
+                name: 'Sage',
+                scientific: 'Salvia officinalis',
+                emoji: '🌾',
+                lifespan: 'Perennial',
+                sunlight: '6-8 hours full sun',
+                watering: 'Moderate; dry between waterings',
+                soil: 'Well-draining, slightly alkaline',
+                pruning: 'Prune heavily in spring to clear out dead wood and spur tender green shoots.',
+                harvest: 'Gently strip leaves or cut entire stem tops.',
+                troubleshooting: 'Mildew on soft leaves = Excess indoor humidity or foliage watering. Always water soil directly.',
+                funFact: 'Sage leaves are covered in micro trichomes (fine hairs) that trap moisture and deter heat loss.',
+                tasks: [
+                    { title: 'Check Soil Moisture', category: 'Watering', note: 'Sage dislikes soggy roots.' },
+                    { title: 'Prune Dead Woody Twigs', category: 'Pruning', note: 'Allows light into the plant center.' }
+                ]
+            },
+            {
+                id: 'oregano',
+                name: 'Oregano',
+                scientific: 'Origanum vulgare',
+                emoji: '🍕',
+                lifespan: 'Perennial',
+                sunlight: 'Full direct sun',
+                watering: 'Low; water only when soil drys',
+                soil: 'Lean, dry to medium soil',
+                pruning: 'Trim frequently to maintain bushiness. Cut back after summer bloom.',
+                harvest: 'Harvest leaves right before pink/purple flowers open for richest flavor concentration.',
+                troubleshooting: 'Loss of flavor intensity = Plant is receiving too much fertilizer or water. Keep it tough!',
+                funFact: 'Oregano leaves develop richer flavor in drier, sunnier conditions with minimal fertilizer.',
+                tasks: [
+                    { title: 'Allow Soil Drying Check', category: 'Watering', note: 'Requires good drainage and dry intervals.' },
+                    { title: 'Pinch Top Clusters', category: 'Pruning', note: 'Keeps foliage dense and prevents leggy stems.' }
+                ]
+            }
+        ];
+
+        /* Symptom Diagnostic Database */
+        const DIAGNOSTIC_DATABASE = {
+            yellow: {
+                title: "Yellowing Leaves",
+                causes: ["Overwatering / Soggy roots (most common)", "Nitrogen deficiency", "Lack of natural sunlight"],
+                remedies: [
+                    "Feel soil 1-2 inches deep. If soggy, stop watering for 4-5 days until dry.",
+                    "Ensure pot has drainage holes at the bottom.",
+                    "If yellowing is on older outer leaves (Parsley/Basil), apply a mild organic seaweed fertilizer."
+                ]
+            },
+            drooping: {
+                title: "Drooping & Wilting Stems",
+                causes: ["Underwatered / Dehydrated soil", "Root rot from stagnant water", "Heat shock"],
+                remedies: [
+                    "Check soil dryness immediately. If dry, give a deep soak until water runs out bottom.",
+                    "If soil is already wet but plant wilts, roots may have rotted. Move to bright indirect light and let soil dry.",
+                    "Move sensitive herbs (Cilantro/Basil) out of scorching mid-day windows."
+                ]
+            },
+            leggy: {
+                title: "Leggy, Tall, & Sparse Stems",
+                causes: ["Insufficient light (reaching for sun)", "Infrequent pruning"],
+                remedies: [
+                    "Move herb closer to a south-facing window or outdoor sun.",
+                    "Pinch/snip off the top 1/3 of tall stems. This forces dormant leaf buds to grow horizontally."
+                ]
+            },
+            flowering: {
+                title: "Bolting / Flowering",
+                causes: ["Summer heat stress", "End of lifecycle trigger"],
+                remedies: [
+                    "Pinch off flower buds immediately to redirect energy into leaf growth.",
+                    "For Cilantro: once bolting starts heavily, let seeds mature to harvest Coriander, and re-sow new seeds."
+                ]
+            },
+            pests: {
+                title: "Pests / Spots on Leaves",
+                causes: ["Aphids, Spider Mites, Powdery Mildew"],
+                remedies: [
+                    "Wipe leaves with soapy water mixture (1 tsp mild soap per quart water).",
+                    "Improve airflow around pots and avoid spraying leaf tops when watering."
+                ]
+            },
+            woody: {
+                title: "Stems Turning Thick & Woody",
+                causes: ["Natural aging in Perennials (Rosemary, Thyme, Sage, Oregano)"],
+                remedies: [
+                    "Prune top soft growth regularly to prevent woodiness from traveling upward.",
+                    "In early spring, prune back up to 1/3, but leave some green leaves on each branch."
+                ]
+            }
+        };
+
+        // APP STATE (Loaded from or saved to LocalStorage)
+        let appState = {
+            weekCycle: 1,
+            completedTasks: {}, // key: taskId, value: boolean or timestamp
+            taskCreationWeeks: {}, // key: taskId, value: week Number created/reset
+            activityLog: [],
+            notes: {}
+        };
+
+        // Initialize Application on Load
+        window.onload = function() {
+            loadStateFromLocalStorage();
+            generateInitialTasksIfNeeded();
+            renderGardenGrid();
+            renderChecklist();
+            renderLibrary();
+            updateStats();
+        };
+
+        function saveStateToLocalStorage() {
+            localStorage.setItem('herb_caretaker_state', JSON.stringify(appState));
+        }
+
+        function loadStateFromLocalStorage() {
+            const saved = localStorage.getItem('herb_caretaker_state');
+            if (saved) {
+                try {
+                    appState = JSON.parse(saved);
+                } catch(e) {
+                    console.error("Error loading saved state", e);
+                }
+            }
+        }
+
+        function resetAllData() {
+            if (confirm("Are you sure you want to reset all checklist progress and activity logs?")) {
+                localStorage.removeItem('herb_caretaker_state');
+                appState = {
+                    weekCycle: 1,
+                    completedTasks: {},
+                    taskCreationWeeks: {},
+                    activityLog: [],
+                    notes: {}
+                };
+                generateInitialTasksIfNeeded();
+                renderGardenGrid();
+                renderChecklist();
+                updateStats();
+                logActivity("Reset app data to default.");
+            }
+        }
+
+        document.getElementById('resetDataBtn').addEventListener('click', resetAllData);
+
+        // Generate baseline task list from herb library
+        function generateInitialTasksIfNeeded() {
+            HERB_DATABASE.forEach(herb => {
+                herb.tasks.forEach((task, index) => {
+                    const taskId = `${herb.id}-task-${index}`;
+                    if (!(taskId in appState.taskCreationWeeks)) {
+                        appState.taskCreationWeeks[taskId] = appState.weekCycle;
+                    }
+                });
+            });
+            saveStateToLocalStorage();
+        }
+
+        function switchTab(tabName) {
+            ['garden', 'checklist', 'assistant', 'library'].forEach(tab => {
+                const view = document.getElementById(`view-${tab}`);
+                const button = document.getElementById(`tab-${tab}`);
+                if (tab === tabName) {
+                    view.classList.remove('hidden');
+                    button.classList.add('active');
+                } else {
+                    view.classList.add('hidden');
+                    button.classList.remove('active');
+                }
+            });
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function renderGardenGrid() {
+            const container = document.getElementById('garden-grid');
+            container.innerHTML = '';
+
+            HERB_DATABASE.forEach(herb => {
+                const card = document.createElement('div');
+                card.className = 'bg-white rounded-2xl p-4 shadow-sm border border-stone-200/80 hover:shadow-md transition flex flex-col justify-between';
+                card.innerHTML = `
+                    <div>
+                        <div class="flex justify-between items-start mb-2">
+                            <div class="flex items-center gap-2.5">
+                                <span class="text-3xl bg-emerald-50 p-2 rounded-xl">${herb.emoji}</span>
+                                <div>
+                                    <h4 class="font-bold text-stone-800 text-sm leading-snug">${herb.name}</h4>
+                                    <span class="text-[10px] text-emerald-700 font-semibold bg-emerald-50 px-2 py-0.5 rounded-full">${herb.lifespan.split(' ')[0]}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <p class="text-xs text-stone-600 line-clamp-2 mt-1 mb-2">${herb.funFact}</p>
+                    </div>
+                    
+                    <div class="pt-3 border-t border-stone-100 flex justify-between items-center text-xs">
+                        <span class="text-stone-400 text-[11px]"><i class="fa-solid fa-sun text-amber-500 mr-1"></i>${herb.sunlight.split(' ')[0]} ${herb.sunlight.split(' ')[1]}</span>
+                        <button onclick="openHerbModal('${herb.id}')" class="text-emerald-700 font-bold hover:text-emerald-900 text-xs flex items-center gap-1">
+                            Guide <i class="fa-solid fa-chevron-right text-[10px]"></i>
+                        </button>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function renderChecklist(filter = 'all') {
+            const container = document.getElementById('tasks-container');
+            container.innerHTML = '';
+
+            let totalTasks = 0;
+            let completedCount = 0;
+            let overdueCount = 0;
+
+            HERB_DATABASE.forEach(herb => {
+                herb.tasks.forEach((task, index) => {
+                    const taskId = `${herb.id}-task-${index}`;
+                    totalTasks++;
+
+                    const isDone = appState.completedTasks[taskId] === true;
+                    const createdWeek = appState.taskCreationWeeks[taskId] || 1;
+                    const weeksOverdue = appState.weekCycle - createdWeek;
+                    const isOverdue = !isDone && weeksOverdue > 0;
+
+                    if (isDone) completedCount++;
+                    if (isOverdue) overdueCount++;
+
+                    // Apply filter
+                    if (filter === 'overdue' && !isOverdue) return;
+                    if (filter === 'pending' && isDone) return;
+
+                    const item = document.createElement('div');
+                    item.className = `p-3.5 rounded-2xl border transition flex items-start gap-3 bg-white ${
+                        isOverdue ? 'border-rose-300 bg-rose-50/30' : isDone ? 'border-stone-200 opacity-75' : 'border-stone-200/90'
+                    }`;
+
+                    item.innerHTML = `
+                        <input type="checkbox" onchange="toggleTask('${taskId}', '${herb.name}: ${task.title}')" ${isDone ? 'checked' : ''} 
+                            class="mt-1 w-4 h-4 text-emerald-600 rounded border-stone-300 focus:ring-emerald-500 cursor-pointer">
+                        <div class="flex-1">
+                            <div class="flex items-center justify-between flex-wrap gap-1">
+                                <span class="font-bold text-xs ${isDone ? 'line-through text-stone-400' : 'text-stone-800'}">
+                                    ${herb.emoji} ${herb.name} — ${task.title}
+                                </span>
+                                ${isOverdue ? `<span class="bg-rose-100 text-rose-700 font-bold text-[10px] px-2 py-0.5 rounded-full flex items-center gap-1"><i class="fa-solid fa-clock"></i> Overdue +${weeksOverdue} wk</span>` : ''}
+                                ${isDone ? `<span class="bg-emerald-100 text-emerald-700 font-bold text-[10px] px-2 py-0.5 rounded-full">Completed</span>` : ''}
+                            </div>
+                            <p class="text-[11px] text-stone-500 mt-0.5">${task.note}</p>
+                        </div>
+                    `;
+                    container.appendChild(item);
+                });
+            });
+
+            // Update Progress Bar
+            const percent = totalTasks > 0 ? Math.round((completedCount / totalTasks) * 100) : 0;
+            document.getElementById('checklist-progress-bar').style.width = `${percent}%`;
+            document.getElementById('checklist-progress-text').innerText = `${percent}% Completed (${completedCount}/${totalTasks})`;
+            document.getElementById('current-week-label').innerText = `Week Cycle #${appState.weekCycle}`;
+
+            // Overdue Alert Banner
+            const alertBanner = document.getElementById('overdue-alert-banner');
+            if (overdueCount > 0) {
+                alertBanner.classList.remove('hidden');
+                document.getElementById('overdue-count-span').innerText = overdueCount;
+                document.getElementById('badge-overdue').innerText = overdueCount;
+                document.getElementById('badge-overdue').classList.remove('hidden');
+            } else {
+                alertBanner.classList.add('hidden');
+                document.getElementById('badge-overdue').classList.add('hidden');
+            }
+
+            renderActivityLog();
+        }
+
+        function toggleTask(taskId, taskDescription) {
+            const currentlyDone = appState.completedTasks[taskId] === true;
+            appState.completedTasks[taskId] = !currentlyDone;
+            
+            if (!currentlyDone) {
+                logActivity(`Completed task: ${taskDescription}`);
+            } else {
+                logActivity(`Unchecked task: ${taskDescription}`);
+            }
+
+            saveStateToLocalStorage();
+            renderChecklist();
+            updateStats();
+        }
+
+        function triggerNewWeek() {
+            if (confirm("Start a new week care cycle? Unfinished tasks will stay flagged as overdue to hold you accountable!")) {
+                appState.weekCycle += 1;
+                
+                // For completed tasks, reset them for the new week and update creation week
+                HERB_DATABASE.forEach(herb => {
+                    herb.tasks.forEach((task, index) => {
+                        const taskId = `${herb.id}-task-${index}`;
+                        if (appState.completedTasks[taskId] === true) {
+                            appState.completedTasks[taskId] = false;
+                            appState.taskCreationWeeks[taskId] = appState.weekCycle;
+                        }
+                    });
+                });
+
+                logActivity(`Advanced garden schedule to Week #${appState.weekCycle}.`);
+                saveStateToLocalStorage();
+                renderChecklist();
+                updateStats();
+            }
+        }
+
+        function filterChecklist(filter) {
+            ['all', 'overdue', 'pending'].forEach(f => {
+                const btn = document.getElementById(`filter-${f}`);
+                if (f === filter) {
+                    btn.className = "px-3 py-1.5 rounded-lg bg-emerald-700 text-white font-medium";
+                } else {
+                    btn.className = "px-3 py-1.5 rounded-lg bg-stone-100 text-stone-600 hover:bg-stone-200 font-medium";
+                }
+            });
+            renderChecklist(filter);
+        }
+
+        function logActivity(text) {
+            const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            appState.activityLog.unshift(`[Wk ${appState.weekCycle} ${timestamp}] ${text}`);
+            if (appState.activityLog.length > 25) appState.activityLog.pop();
+            saveStateToLocalStorage();
+            renderActivityLog();
+        }
+
+        function renderActivityLog() {
+            const logContainer = document.getElementById('activity-log');
+            if (!appState.activityLog || appState.activityLog.length === 0) {
+                logContainer.innerHTML = `<p class="text-stone-400 italic text-center py-2">No care actions logged yet.</p>`;
+                return;
+            }
+            logContainer.innerHTML = appState.activityLog.map(entry => `
+                <div class="py-1 flex items-center gap-2">
+                    <i class="fa-solid fa-angle-right text-emerald-600 text-[10px]"></i>
+                    <span>${entry}</span>
+                </div>
+            `).join('');
+        }
+
+        function updateStats() {
+            let total = 0;
+            let done = 0;
+            let overdue = 0;
+
+            HERB_DATABASE.forEach(herb => {
+                herb.tasks.forEach((task, index) => {
+                    const taskId = `${herb.id}-task-${index}`;
+                    total++;
+                    const isDone = appState.completedTasks[taskId] === true;
+                    const createdWeek = appState.taskCreationWeeks[taskId] || 1;
+                    if (isDone) done++;
+                    if (!isDone && (appState.weekCycle - createdWeek) > 0) overdue++;
+                });
+            });
+
+            document.getElementById('stat-herbs-count').innerText = HERB_DATABASE.length;
+            document.getElementById('stat-completed-tasks').innerText = `${done}/${total}`;
+            document.getElementById('stat-overdue-tasks').innerText = overdue;
+        }
+
+        function diagnoseSymptom(key) {
+            const diag = DIAGNOSTIC_DATABASE[key];
+            const container = document.getElementById('diagnostic-result');
+
+            container.innerHTML = `
+                <div class="space-y-3">
+                    <div class="flex items-center gap-2 pb-2 border-b border-stone-200">
+                        <span class="text-xl">🩺</span>
+                        <h3 class="font-bold text-stone-800 text-sm">${diag.title}</h3>
+                    </div>
+
+                    <div>
+                        <strong class="text-stone-700 block text-xs mb-1">Likely Causes:</strong>
+                        <ul class="list-disc list-inside text-xs text-stone-600 space-y-0.5">
+                            ${diag.causes.map(c => `<li>${c}</li>`).join('')}
+                        </ul>
+                    </div>
+
+                    <div class="bg-emerald-50 p-3 rounded-xl border border-emerald-200/60">
+                        <strong class="text-emerald-900 block text-xs mb-1"><i class="fa-solid fa-kit-medical text-emerald-600 mr-1"></i> Caretaker Action Steps:</strong>
+                        <ol class="list-decimal list-inside text-xs text-emerald-800 space-y-1">
+                            ${diag.remedies.map(r => `<li>${r}</li>`).join('')}
+                        </ol>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderLibrary() {
+            const container = document.getElementById('library-cards-container');
+            container.innerHTML = '';
+
+            HERB_DATABASE.forEach(herb => {
+                const item = document.createElement('div');
+                item.className = 'herb-library-item bg-white rounded-2xl p-4 shadow-sm border border-stone-200/80 space-y-3';
+                item.setAttribute('data-name', herb.name.toLowerCase());
+                item.innerHTML = `
+                    <div class="flex items-center justify-between border-b border-stone-100 pb-2">
+                        <div class="flex items-center gap-3">
+                            <span class="text-3xl bg-stone-100 p-2 rounded-2xl">${herb.emoji}</span>
+                            <div>
+                                <h3 class="font-bold text-stone-800 text-sm">${herb.name}</h3>
+                                <p class="text-[11px] text-stone-400 italic">${herb.scientific}</p>
+                            </div>
+                        </div>
+                        <span class="bg-emerald-100 text-emerald-800 font-bold text-[10px] px-2.5 py-1 rounded-full">${herb.lifespan}</span>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2 text-xs">
+                        <div class="bg-stone-50 p-2.5 rounded-xl border border-stone-100">
+                            <span class="text-stone-400 text-[10px] block font-semibold uppercase">Sunlight</span>
+                            <span class="text-stone-700 font-medium">${herb.sunlight}</span>
+                        </div>
+                        <div class="bg-stone-50 p-2.5 rounded-xl border border-stone-100">
+                            <span class="text-stone-400 text-[10px] block font-semibold uppercase">Water Routine</span>
+                            <span class="text-stone-700 font-medium">${herb.watering}</span>
+                        </div>
+                    </div>
+
+                    <div class="space-y-1.5 text-xs text-stone-600">
+                        <p><strong><i class="fa-solid fa-scissors text-emerald-600 mr-1"></i> Pruning:</strong> ${herb.pruning}</p>
+                        <p><strong><i class="fa-solid fa-basket-shopping text-emerald-600 mr-1"></i> Harvesting:</strong> ${herb.harvest}</p>
+                        <p><strong><i class="fa-solid fa-triangle-exclamation text-amber-500 mr-1"></i> Troubleshooting:</strong> ${herb.troubleshooting}</p>
+                    </div>
+
+                    <div class="bg-emerald-50 p-3 rounded-xl border border-emerald-100 text-xs text-emerald-900 flex items-start gap-2">
+                        <i class="fa-solid fa-lightbulb text-amber-500 text-sm mt-0.5"></i>
+                        <div>
+                            <strong>Did You Know?</strong> ${herb.funFact}
+                        </div>
+                    </div>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        function filterLibrary() {
+            const query = document.getElementById('library-search').value.toLowerCase();
+            const items = document.querySelectorAll('.herb-library-item');
+            items.forEach(item => {
+                const name = item.getAttribute('data-name');
+                if (name.includes(query)) {
+                    item.classList.remove('hidden');
+                } else {
+                    item.classList.add('hidden');
+                }
+            });
+        }
+
+        /* Modal Dialog handling */
+        function openHerbModal(herbId) {
+            const herb = HERB_DATABASE.find(h => h.id === herbId);
+            if (!herb) return;
+
+            document.getElementById('modal-emoji').innerText = herb.emoji;
+            document.getElementById('modal-title').innerText = herb.name;
+            document.getElementById('modal-subtitle').innerText = `${herb.scientific} • ${herb.lifespan}`;
+
+            const modalContent = document.getElementById('modal-content');
+            modalContent.innerHTML = `
+                <div class="grid grid-cols-2 gap-2 text-xs">
+                    <div class="bg-stone-50 p-2.5 rounded-xl border border-stone-200">
+                        <strong class="text-stone-400 text-[10px] block uppercase">Sun Requirement</strong>
+                        <span class="font-medium text-stone-800">${herb.sunlight}</span>
+                    </div>
+                    <div class="bg-stone-50 p-2.5 rounded-xl border border-stone-200">
+                        <strong class="text-stone-400 text-[10px] block uppercase">Water Routine</strong>
+                        <span class="font-medium text-stone-800">${herb.watering}</span>
+                    </div>
+                </div>
+
+                <div class="space-y-2">
+                    <h4 class="font-bold text-stone-800 text-xs flex items-center gap-1.5">
+                        <i class="fa-solid fa-scissors text-emerald-600"></i> Pruning & Maintenance
+                    </h4>
+                    <p class="bg-stone-50 p-2.5 rounded-xl border border-stone-200">${herb.pruning}</p>
+                </div>
+
+                <div class="space-y-2">
+                    <h4 class="font-bold text-stone-800 text-xs flex items-center gap-1.5">
+                        <i class="fa-solid fa-basket-shopping text-emerald-600"></i> Harvest Guide
+                    </h4>
+                    <p class="bg-stone-50 p-2.5 rounded-xl border border-stone-200">${herb.harvest}</p>
+                </div>
+
+                <div class="space-y-2">
+                    <h4 class="font-bold text-stone-800 text-xs flex items-center gap-1.5">
+                        <i class="fa-solid fa-stethoscope text-amber-500"></i> Common Issues & Fixes
+                    </h4>
+                    <p class="bg-amber-50/50 p-2.5 rounded-xl border border-amber-200/60 text-amber-900">${herb.troubleshooting}</p>
+                </div>
+
+                <div class="bg-emerald-50 p-3 rounded-2xl border border-emerald-200/70 text-emerald-900 flex items-start gap-2">
+                    <i class="fa-solid fa-lightbulb text-amber-500 text-sm mt-0.5"></i>
+                    <div>
+                        <strong class="block font-bold">Caretaker Fun Fact</strong>
+                        <p class="mt-0.5">${herb.funFact}</p>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('herb-modal').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('herb-modal').classList.add('hidden');
+        }
+    </script>
+</body>
+</html>
